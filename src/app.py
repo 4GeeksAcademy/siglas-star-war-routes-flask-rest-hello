@@ -750,22 +750,26 @@ def put_vehicle(vehicle_id):
    data = request.get_json()
    if not data:
        return jsonify({"message": "No hay datos que procesar, verifique"}), 400
-   vehicle = Vehicle.query.get(vehicle_id)  
-   if not vehicle:
-        return jsonify({"error": "Vehicle no encontrado, verifique "}), 404
-   
-    
- 
-
-   for field in ["name", "climate", "description", "gravity", "population"]:
-       if field in data:
-           setattr(planet, field, data[field])
-       db.session.commit()
-       return jsonify({
-           "message": "Planeta actualizado correctamente",
-           "updated": planet.serialize()
-       }), 200
-
+   try:
+       vehicle = Vehicle.query.get(vehicle_id)  
+       if not vehicle:
+            return jsonify({"error": "Vehicle no encontrado, verifique "}), 404
+       for field in ["name", "consumables", "cargo_capacity", "passenger",
+                      "max_atmosphering_speed", "crew", "length", "model", "cost_in_credits",
+                      "manufactured", "vehicle_class", "description"]:
+           if field in data:
+               setattr(vehicle, field, data[field])  # actualizacion dinamica de datos 
+           db.session.commit()
+           return jsonify({
+               "message": "Vehicle actualizado correctamente",
+               "update": vehicle.serialize()
+           }) 
+   except SQLAlchemyError as e:
+       db.session.rollback()
+       return jsonify({"message": "Error, en la base de datos"}),500
+   except Exception as e:
+       return jsonify({"message": "Error, en el servidor"}),500
+       
 # fin modelo vehicles
 
 
